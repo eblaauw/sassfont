@@ -1,0 +1,150 @@
+/// An array of typography properties
+///
+/// @group typography
+///
+/// @author Edzo Blaauw
+///
+/// @access private
+
+// sass-lint:disable-all
+$fonts: (
+  headings: (
+    desktop: (
+      // Page title
+      1: (
+        font-size: 48px,
+        line-height: 56px,
+        font-weight: 900
+      )
+    ),
+    mobile: (
+      // Page title
+      1: (
+        font-size: 26px,
+        line-height: 34px,
+        font-weight: 900
+      )
+    ),
+    tablet: (
+      // Page title
+      1: (
+        font-size: 42px,
+        line-height: 50px,
+        font-weight: 900
+      ),
+    )
+  ),
+);
+// sass-lint:enable-all
+
+/// A function to map the font properties
+///
+/// @group typography
+///
+/// @param {String} $font-object [main] - The font object (header, content etc)
+/// @param {String} $font-size [medium]  - The font size (big, medium etc)
+/// @param {String} $font-attribute [font-size]  - The font attribute (font-size, line-height etc)
+///
+/// @example
+///   mapFont('main', 'normal', 'font-size');
+///
+/// @author Edzo Blaauw
+///
+/// @access private
+
+@function generateFont($font-platform: mobile, $font-object: headings, $font-size: 1, $font-attribute: font-size) {
+  @return map-get(map-get(map-get(map-get($fonts, $font-object), $font-platform), $font-size), $font-attribute);
+}
+
+/// A function to check if it has nested keys
+/// @access private
+@function map-has-nested-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+    $map: map-get($map, $key);
+  }
+
+  @return true;
+}
+
+/// A mixin to create the default font
+///
+/// @group typography
+///
+/// @param {String} $font-family [$brand-font-main]- The font for this typography
+/// @param {String} $font-object [header]  - The font object (header, content etc)
+/// @param {String} $font-size [normal]  - The font size (big, medium etc)
+/// @param {String} $font-display [inline-block]  - Font display (block, inline-block etc)
+/// @param {Color} $font-color [#000000]  - Font color in RGB
+///
+/// @example
+///   makeFont($font-object: header, $font-size: big)
+///
+/// @author Edzo Blaauw
+@mixin createFont($font-family: $brand-font-main, $font-object: headings, $font-size: normal, $font-display: inline-block, $font-color: #000, $font-platform: mobile, $font-weight: false) {
+  display: $font-display;
+  color: $font-color;
+  font-family: $font-family;
+  font-size: generateFont(mobile, $font-object, $font-size, font-size);
+
+  @if map-has-nested-keys($fonts, $font-object, tablet, $font-size) {
+    @include breakpoint('sm') {
+      font-size: generateFont(tablet, $font-object, $font-size, font-size);
+      line-height: generateFont(tablet, $font-object, $font-size, line-height);
+    }
+  }
+
+  @if $font-weight {
+    font-weight: $font-weight;
+  } @else {
+    font-weight: generateFont(mobile, $font-object, $font-size, font-weight);
+  }
+
+  line-height: generateFont(mobile, $font-object, $font-size, line-height);
+
+  @include breakpoint('md') {
+    font-size: generateFont(desktop, $font-object, $font-size, font-size);
+    @if $font-weight {
+      font-weight: $font-weight;
+    } @else {
+      font-weight: generateFont(desktop, $font-object, $font-size, font-weight);
+    }
+    line-height: generateFont(desktop, $font-object, $font-size, line-height);
+  }
+}
+
+
+
+/// A mixin to create a background behind the text in a hacky way.
+///
+/// @group typography
+///
+/// @param {Color} $background-color [#000000]- The background for the font
+/// @param {Px} $background-top [0]- Padding top
+/// @param {Px} $background-left [0]- Padding left
+/// @param {Px} $background-right [0]- Padding right
+/// @param {Px} $background-bottom [0]- Padding bottom (getting 5 extra px because of the font)
+///
+/// @example
+///   createTextBackground(#00000)
+///
+///
+/// @author Edzo Blaauw
+@mixin createMultiLineTextBackground($background-color: #000, $padding-top: 0, $padding-left: 0, $padding-right: 0, $padding-bottom: 3px) {
+  display: inline;
+  padding: $padding-top $padding-right $padding-bottom $padding-left;
+  background: $background-color;
+  color: $brand-color-white;
+  line-height: 1.4;
+  box-shadow: 10px 0 0 $background-color, -10px 0 0 $background-color;
+  box-decoration-break: clone;
+}
+
+/// Remove text decoration
+///
+/// @author Edzo Blaauw
+@mixin removeTextDecoration() {
+  text-decoration: none;
+}
